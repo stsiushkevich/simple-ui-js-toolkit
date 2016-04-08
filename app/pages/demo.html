@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simple UI JS Toolkit</title>
+    <link rel="stylesheet" type="text/css" href="../css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="../css/bootstrap-theme.min.css">
+    <link rel="stylesheet" type="text/css" href="../css/demo.css">
+    <script type="text/javascript" src="../js/plugins/jquery-1.10.2.min.js"></script>
+    <script type="text/javascript" src="../js/plugins/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../js/components/toolkit/UIComponentFactory.js"></script>
+    <script type="text/javascript" src="../js/components/controls/UIWidgets.js"></script>
+    <script type="text/javascript" src="../js/components/demo/demo.js"></script>
+</head>
+<body>
+<div class="demo-section">
+    <form id="someTextForm" class="form-inline" method="POST" action="#">
+        <div class="form-group">
+            <label for="someText">some text</label>
+            <input type="text" id="someText" name="someText" class="form-control" placeholder="Some Text"/>
+        </div>
+        <input type="submit" id="someTextSendBtn" name="someTextSendBtn" value="Send Text" class="btn btn-default"/>
+    </form>
+    <div>Your Text:</div>
+    <div id="sentTextViewer" class="sentTextViewer">
+        <div class="box"></div>
+    </div>
+</div>
+</body>
+</html>
