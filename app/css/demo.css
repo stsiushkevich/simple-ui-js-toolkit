@@ -1,0 +1,21 @@
+.demo-section {
+    padding: 20px;
+}
+
+.sentSomeText {
+    background: #F6F3F3;
+    min-height: 100px;
+}
+
+.sentTextViewer{
+    width: 100%;
+    border: 1px solid #BBBBBB;
+    display: table;
+    min-height: 100px;
+}
+.sentTextViewer .box{
+    display: table-cell;
+    text-align: center;
+    font-size: 51px;
+    vertical-align: middle;
+}
