@@ -5,12 +5,13 @@ UIFactory = UIComponentFactory = (function () {
     var DATA_STORE = 'DataStore';
     var WIDGET_REGISTER = 'WidgetRegister';
 
-    function inherit(childClass){        
+    function inherit(childClass){
         return{
             from: function(parentClass){
                 var old = childClass.prototype;
                 childClass.prototype = Object.create(parentClass.prototype);
                 childClass.prototype.constructor = childClass;
+                childClass.superClass = parentClass;
                 for(var prop in old){
                     if(!childClass.prototype[prop]){
                         childClass.prototype[prop] = old[prop];
@@ -21,52 +22,52 @@ UIFactory = UIComponentFactory = (function () {
     }
 
     /*
-    * using example:
-    * var MyStore = UIFactory.createClass('DataStore', {
-    *   proxy:{
-    *       url: ...
-    *   }
-    * });
-    *
-    * var myStore = UIFactory.createInstance(MyStore);     *
-    * myStore.loadData()
-    * var data = myStore.getData();
-    *
-    * data binding in widget example:
-    *
-    * var MyWidget = UIFactory.createClass('Widget', {
-    *   init: function(){
-    *   
-    *       this.dataStore.on('update', function(data){
-    *           var widgets = Object.keys(self.widgets);
-    *           for(var i=0; i<widgets.length, i++){
-    *               var name = widgets[i];
-    *               $(self.widgets[name]).setValue(data[name]);
-    *           }
-    *       });
-    *       
-    *       var me = this;
-    *       this.dataStore.on('loadError', function(error){
-    *           var errorBox = me.widgets.errorBox;
-    *           errorBox.setMessage(error.text);
-    *           errorBox.show();
-    *       });  
-    *       
-    *       this.widgets.updateButton.onClick(function(){
-    *           me.loadData();
-    *       });
-    *    },
-    *    loadData: function(){
-    *       this.dataStore.loadData();
-    *    }
-    * });
-    * 
-    * var myWidget = UIFactory.createInstance(MyWidget, {
-    *   dom: document.getElementById('myElement'),
-    *   dataStore: myStore
-    * });
-    *
-    * */
+     * using example:
+     * var MyStore = UIFactory.createClass('DataStore', {
+     *   proxy:{
+     *       url: ...
+     *   }
+     * });
+     *
+     * var myStore = UIFactory.createInstance(MyStore);     *
+     * myStore.loadData()
+     * var data = myStore.getData();
+     *
+     * data binding in widget example:
+     *
+     * var MyWidget = UIFactory.createClass('Widget', {
+     *   init: function(){
+     *
+     *       this.dataStore.on('update', function(data){
+     *           var widgets = Object.keys(self.widgets);
+     *           for(var i=0; i<widgets.length, i++){
+     *               var name = widgets[i];
+     *               $(self.widgets[name]).setValue(data[name]);
+     *           }
+     *       });
+     *
+     *       var me = this;
+     *       this.dataStore.on('loadError', function(error){
+     *           var errorBox = me.widgets.errorBox;
+     *           errorBox.setMessage(error.text);
+     *           errorBox.show();
+     *       });
+     *
+     *       this.widgets.updateButton.onClick(function(){
+     *           me.loadData();
+     *       });
+     *    },
+     *    loadData: function(){
+     *       this.dataStore.loadData();
+     *    }
+     * });
+     *
+     * var myWidget = UIFactory.createInstance(MyWidget, {
+     *   dom: document.getElementById('myElement'),
+     *   dataStore: myStore
+     * });
+     *
+     * */
     function createDataStoreClass(config){
         var _data = null;
 
@@ -117,7 +118,7 @@ UIFactory = UIComponentFactory = (function () {
         };
         return Constructor;
     }
- 
+
     function createComponentClass(config) {
         var _widgets = {};
         var _wgRegister = {};
@@ -143,18 +144,46 @@ UIFactory = UIComponentFactory = (function () {
                 }
             });
         }
-        Constructor.prototype.init = function(){};
-        
-        if(config.extends){
+
+        Constructor.prototype.init = function () {
+        };
+
+        if (config.extends) {
             inherit(Constructor).from(config.extends);
+
+            var callStackSize = 0;
+            Constructor.prototype.super = function (methodName) {
+                callStackSize++;
+
+                var customClass = this.constructor;
+                while (!customClass.isCustomClass) {
+                    customClass = customClass.superClass;
+                }
+
+                for (var j = 0; j < callStackSize; j++) {
+                    do {
+                        customClass = customClass.superClass;
+                    } while (!customClass.isCustomClass);
+                }
+
+                if (customClass.prototype[methodName]) {
+                    var args = [];
+                    for (var i = 1; i < arguments.length; i++) {
+                        args[i - 1] = arguments[i];
+                    }
+                    customClass.prototype[methodName].apply(this, args);
+                }
+
+                callStackSize--;
+            };
         }
-        
+
         for(var prop in config){
             if (prop != 'extends') {
                 Constructor.prototype[prop] = config[prop];
-            } 
-        }  
-        
+            }
+        }
+        Constructor.isCustomClass = true;
         return Constructor;
     }
 
@@ -168,21 +197,18 @@ UIFactory = UIComponentFactory = (function () {
     }
 
     function createWidgetClass(config){
-        var _dom = null;
-
         var _dataStore = null;
 
         var Component = createComponentClass(config);
         function Constructor(options) {
             Component.apply(this, arguments);
-            if(!_dom){
-                _dom = options.dom || null;
+            if(options.dom){
+                Object.defineProperty(this, 'dom', {
+                    get: function () {
+                        return options.dom;
+                    }
+                });
             }
-            Object.defineProperty(this, 'dom', {
-                get: function () {
-                    return _dom;
-                }
-            });
 
             if(!_dataStore){
                 _dataStore = options.dataStore || null;
@@ -211,6 +237,9 @@ UIFactory = UIComponentFactory = (function () {
         };
         Constructor.prototype.keySet = function(){
             return Object.keys(_widgetRegister);
+        };
+        Constructor.prototype.remove = function(wgKey){
+            delete _widgetRegister[wgKey];
         };
 
         return Constructor;
