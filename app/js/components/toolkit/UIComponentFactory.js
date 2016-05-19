@@ -1,5 +1,5 @@
-var UIFactory, UIComponentFactory;
-UIFactory = UIComponentFactory = (function () {
+var UI, UIFactory, UIComponentFactory;
+UI = UIFactory = UIComponentFactory = (function () {
     var VIEW = 'View';
     var WIDGET = 'Widget';
     var DATA_STORE = 'DataStore';
@@ -37,7 +37,7 @@ UIFactory = UIComponentFactory = (function () {
      *
      * var MyWidget = UIFactory.createClass('Widget', {
      *   init: function(){
-     *
+     *   
      *       this.dataStore.on('update', function(data){
      *           var widgets = Object.keys(self.widgets);
      *           for(var i=0; i<widgets.length, i++){
@@ -45,14 +45,14 @@ UIFactory = UIComponentFactory = (function () {
      *               $(self.widgets[name]).setValue(data[name]);
      *           }
      *       });
-     *
+     *       
      *       var me = this;
      *       this.dataStore.on('loadError', function(error){
      *           var errorBox = me.widgets.errorBox;
      *           errorBox.setMessage(error.text);
      *           errorBox.show();
-     *       });
-     *
+     *       });  
+     *       
      *       this.widgets.updateButton.onClick(function(){
      *           me.loadData();
      *       });
@@ -61,7 +61,7 @@ UIFactory = UIComponentFactory = (function () {
      *       this.dataStore.loadData();
      *    }
      * });
-     *
+     * 
      * var myWidget = UIFactory.createInstance(MyWidget, {
      *   dom: document.getElementById('myElement'),
      *   dataStore: myStore
@@ -265,6 +265,18 @@ UIFactory = UIComponentFactory = (function () {
             }
             inherit(Constructor).from(ParentClass);
             return Constructor;
+        },
+        Widget: function(config){
+            return this.createClass(WIDGET, config);
+        },
+        View: function(config){
+            return this.createClass(VIEW, config);
+        },
+        DataStore: function(config){
+            return this.createClass(DATA_STORE, config);
+        },
+        WidgetRegister: function(config){
+            return this.createClass(WIDGET_REGISTER, config);
         },
         createInstance: function (Component, options) {
             return new Component(options);

@@ -1,5 +1,8 @@
 var UIWidgets = (function(){
-    var MessageBox = UIFactory.createClass('Widget', {
+    var MessageBox = UI.Widget({
+        getWidget: function (wgId) {
+            return this.wgRegister.get(wgId);
+        },
         init: function(){
             this.$dom = $(this.dom);
         },
@@ -14,7 +17,7 @@ var UIWidgets = (function(){
         }
     });
 
-    var Overflow = UIFactory.createClass('Widget', {
+    var Overflow = UI.Widget({
         getWidget: function(wgId){
             return this.wgRegister.get(wgId);
         },
@@ -35,7 +38,10 @@ var UIWidgets = (function(){
         }
     });
 
-    var TextInput = UIFactory.createClass('Widget', {
+    var TextInput = UI.Widget({
+        getWidget: function (wgId) {
+            return this.wgRegister.get(wgId);
+        },
         init: function(){
             this.$dom = $(this.dom);
         },
@@ -47,7 +53,7 @@ var UIWidgets = (function(){
         }
     });
 
-    var Button  = UIFactory.createClass('Widget', {
+    var Button  = UI.Widget({
         getWidget: function(wgId){
             return this.wgRegister.get(wgId);
         },
@@ -56,7 +62,10 @@ var UIWidgets = (function(){
         }
     });
 
-    var View = UIFactory.createClass('View', {
+    var View = UI.View({
+        getWidget: function (wgId) {
+            return this.wgRegister.get(wgId);
+        },
         onReady: function(handler){
             var me = this;
             $(document).ready(function(e){
@@ -88,40 +97,59 @@ var UIWidgets = (function(){
         }
     });
 
-    var Form = UIFactory.createClass('Widget', {
-        getWidget: function(wgId){
+    var Form = UI.Widget({
+        init: function () {
+            this.$dom = $(this.dom);
+        },
+        getWidget: function (wgId) {
             return this.wgRegister.get(wgId);
         },
-        reset: function(){
+        reset: function () {
             this.dom.reset();
         },
-        focusOnElement: function(name){
+        focusOnElement: function (name) {
             $(this.dom.elements[name]).focus();
         },
-        isValid: function(){
+        isValid: function () {
             return this.$dom.valid();
         },
-        getElementValue: function(name){
+        getElementValue: function (name) {
             return $(this.dom.elements[name]).val();
         },
-        isElementChecked: function(name){
+        getElement: function (name) {
+            return this.dom.elements[name];
+        },
+        setElementValue: function (name, val) {
+            return $(this.dom.elements[name]).val(val);
+        },
+        isElementChecked: function (name) {
             return $(this.dom.elements[name]).is(':checked');
+        },
+        getAttr: function (attrName) {
+            return this.$dom.attr(attrName);
+        },
+        setAttr: function (attrName, attrVal) {
+            return this.$dom.attr(attrName, attrVal);
+        },
+        onSubmit: function (handler) {
+            this.$dom.submit(handler);
+        },
+        submit: function () {
+            this.$dom.submit();
         }
     });
 
 
-    var ComboBox = UIFactory.createClass('Widget', {
+    var ComboBox = UI.Widget({
         getWidget: function(wgId){
             return this.wgRegister.get(wgId);
         },
-
         onItemSelected: function(handler){
             var me = this;
             this.$dom.on('change', function(e){
                 if(handler) handler.apply(me, [e]);
             });
         },
-
         getValue: function(){
             return this.$dom.val();
         }
