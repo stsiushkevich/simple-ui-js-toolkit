@@ -1,12 +1,9 @@
-var WidgetRegister = UIFactory.createClass('WidgetRegister');
-var wgRegister = UIFactory.createInstance(WidgetRegister);
+/**
+ * demo
+ * */
 
-var LoginView = UIFactory.createClass('View', {
-    extends: UIWidgets.View
-});
-
-var view = UIFactory.createInstance(LoginView, {
-    wgRegister: wgRegister
+var view = UIFactory.createInstance(UI.View({extends: UIWidgets.View}), {
+    wgRegister: UIFactory.createInstance(UI.WidgetRegister())
 });
 
 view.onReady(function(e){
@@ -20,7 +17,7 @@ view.onReady(function(e){
 
 /*-----------------Widgets of View -------------------------*/
 
-var SentTextViewer = UIFactory.createClass('Widget', {
+var SentTextViewer = UI.Widget({
     init: function(){
         this.$dom = $(this.dom);
     },
@@ -29,16 +26,16 @@ var SentTextViewer = UIFactory.createClass('Widget', {
     }
 });
 
-var SomeTextForm = UIFactory.createClass('Widget', {
+var SomeTextForm = UI.Widget({
     extends: UIWidgets.Form,
 
     init: function(){
-        this.$dom = $(this.dom);
+        this.super('init');
 
         var me = this;
-        this.$dom.submit(function(){
+        this.submit(function(){
             var $someText = $(me.dom.elements.someText);
-            me.wgRegister.get('sentTextViewer').setText($someText.val());
+            me.getWidget('sentTextViewer').setText($someText.val());
             return false;
         });
     }
