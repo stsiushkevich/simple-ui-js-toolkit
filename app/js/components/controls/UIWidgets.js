@@ -1,10 +1,49 @@
 var UIWidgets = (function(){
-    var MessageBox = UI.Widget({
-        getWidget: function (wgId) {
-            return this.wgRegister.get(wgId);
+    var PageStateAccessComponent = UI.Widget({
+        _pageState_ : null,
+
+        pgState: function(){
+            if(!this._pageState_) return void(0);
+            var argCount = arguments.length;
+            if(!argCount) return this._pageState_.get();
+            var k = arguments[0];
+            if(argCount == 1) return this._pageState_.get(k);
+            this._pageState_.put(k, arguments[1]);
         },
-        init: function(){
+        setPageState: function(state){
+            this._pageState_ = state;
+        },
+        hasPageState: function(){
+            return this._pageState_ !== null;
+        },
+        getPageState: function(){
+            return this._pageState_;
+        }
+    });
+
+    var Box = UI.Widget({
+        extends: PageStateAccessComponent,
+
+        init: function () {
             this.$dom = $(this.dom);
+        },
+        show: function () {
+            this.$dom.show();
+        },
+        hide: function () {
+            this.$dom.hide();
+        },
+        toggle: function(show){
+            if(show) this.show();
+            else this.hide();
+        }
+    });
+
+    var MessageBox = UI.Widget({
+        extends: Box,
+
+        init: function(){
+            this.super(Box, 'init');
         },
         setMessage: function(msg){
             this.$dom.html(msg);
@@ -17,10 +56,9 @@ var UIWidgets = (function(){
         }
     });
 
-    var Overflow = UI.Widget({
-        getWidget: function(wgId){
-            return this.wgRegister.get(wgId);
-        },
+    var Overlay = UI.Widget({
+        extends: PageStateAccessComponent,
+
         onShow: function(handler){
             this.$dom.on('shown.bs.modal', handler);
         },
@@ -39,9 +77,8 @@ var UIWidgets = (function(){
     });
 
     var TextInput = UI.Widget({
-        getWidget: function (wgId) {
-            return this.wgRegister.get(wgId);
-        },
+        extends: PageStateAccessComponent,
+
         init: function(){
             this.$dom = $(this.dom);
         },
@@ -54,15 +91,25 @@ var UIWidgets = (function(){
     });
 
     var Button  = UI.Widget({
-        getWidget: function(wgId){
-            return this.wgRegister.get(wgId);
+        extends: PageStateAccessComponent,
+
+        init: function () {
+            this.super(Box, 'init');
         },
-        onClick: function(handler){
+        onClick: function (handler) {
             this.$dom.on('click', handler);
+        },
+        disable: function (disabled) {
+            this.$dom.prop('disabled', disabled);
+        },
+        isDisabled: function () {
+            return !!this.$dom.prop('disabled');
         }
     });
 
     var View = UI.View({
+        extends: PageStateAccessComponent,
+
         getWidget: function (wgId) {
             return this.wgRegister.get(wgId);
         },
@@ -98,6 +145,8 @@ var UIWidgets = (function(){
     });
 
     var Form = UI.Widget({
+        extends: PageStateAccessComponent,
+
         init: function () {
             this.$dom = $(this.dom);
         },
@@ -139,10 +188,59 @@ var UIWidgets = (function(){
         }
     });
 
+    var AjaxForm = UI.Widget({
+        extends: Form,
+
+        _ajaxEventHandlers: {
+            success: [],
+            error: []
+        },
+
+        init: function () {
+            this.super(Form, 'init');
+        },
+        sendAjax: function (url, data) {
+            var me = this;
+            $.ajax({
+                url: url,
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                data: JSON.stringify(data),
+                success: function (response) {
+                    var handlers = [];
+                    if (response['success'] == "SUCCESS") {
+                        handlers = me._ajaxEventHandlers.success;
+                        for (var i = 0; i < handlers.length; i++) {
+                            handlers[i].call(me, response);
+                        }
+                    } else {
+                        handlers = me._ajaxEventHandlers.error;
+                        for (var i = 0; i < handlers.length; i++) {
+                            handlers[i].call(me, response);
+                        }
+                    }
+                },
+                error: function (error) {
+                    var handlers = me._ajaxEventHandlers.error;
+                    for (var i = 0; i < handlers.length; i++) {
+                        handlers[i].call(me, error);
+                    }
+                }
+            });
+        },
+        onAjaxSendSuccess: function (handler) {
+            this._ajaxEventHandlers.success.push(handler);
+        },
+        onAjaxSendError: function (handler) {
+            this._ajaxEventHandlers.error.push(handler);
+        }
+    });
 
     var ComboBox = UI.Widget({
-        getWidget: function(wgId){
-            return this.wgRegister.get(wgId);
+        extends: Box,
+
+        init: function () {
+            this.super(Box, 'init');
         },
         onItemSelected: function(handler){
             var me = this;
@@ -155,13 +253,38 @@ var UIWidgets = (function(){
         }
     });
 
+    var PageState = UI.Model({
+        init: function(){
+            this.initDom();
+            this.load();
+            this.destroyDom();
+        },
+        initDom: function(){
+            this.$dom = $(this.dom);
+        },
+        load: function(){
+            var data = this.$dom.val().split(',');
+            for(var i=0; i< data.length; i++){
+                var kv = data[i].split(':');
+                var v = kv[1].trim();
+                this.put(kv[0].trim(), isNaN(+v) ? v : +v);
+            }
+        },
+        destroyDom: function(){
+            this.$dom.remove();
+        }
+    });
+
     return {
+        Box: Box,
         MessageBox: MessageBox,
-        Overflow: Overflow,
+        Overlay: Overlay,
         TextInput: TextInput,
         Button: Button,
         View: View,
         Form: Form,
-        ComboBox: ComboBox
+        AjaxForm: AjaxForm,
+        ComboBox: ComboBox,
+        PageState: PageState
     };
 })();
