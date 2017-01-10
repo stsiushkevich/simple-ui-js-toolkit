@@ -329,6 +329,10 @@ UI = UIFactory = UIComponentFactory = (function () {
             return this.getWidget(wgId);
         };
 
+        Component.prototype.wg = function(wgId){
+            return this.getWidget(wgId);
+        };
+
         if (config.extends) {
             inherit(Component).from(config.extends);
 
