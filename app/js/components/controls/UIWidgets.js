@@ -63,12 +63,6 @@ var UIWidgets = (function(){
         },
         setMessage: function(msg){
             this.$dom.html(msg);
-        },
-        show: function(){
-            this.$dom.show();
-        },
-        hide: function(){
-            this.$dom.hide();
         }
     });
 
@@ -107,7 +101,7 @@ var UIWidgets = (function(){
     });
 
     var Button  = UI.Widget({
-        extends: PageStateAccessWidget,
+        extends: Box,
 
         init: function () {
             this.super(Box, 'init');
@@ -161,7 +155,7 @@ var UIWidgets = (function(){
     });
 
     var Form = UI.Widget({
-        extends: PageStateAccessWidget,
+        extends: Box,
 
         init: function () {
             this.$dom = $(this.dom);
