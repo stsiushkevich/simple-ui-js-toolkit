@@ -20,15 +20,13 @@ view.onReady(function(e){
 var SentTextViewer = UI.Widget({
     extends: UIWidgets.Box,
 
-    refs: {},
-
     init: function(){
         this.super('init');
 
-        this.refs.$box = this.$dom.find('.box');
+        this.ref('box', this.$dom.find('.box'));
     },
     setText: function(text){
-        this.refs.$box.html(text);
+        this.ref('box').html(text);
     }
 });
 
