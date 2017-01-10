@@ -2,8 +2,8 @@
  * demo
  * */
 
-var view = UIFactory.createInstance(UI.View({extends: UIWidgets.View}), {
-    wgRegister: UIFactory.createInstance(UI.WidgetRegister())
+var view = UI.createInstance(UI.View({extends: UIWidgets.View}), {
+    wgRegister: UI.createInstance(UI.WidgetRegister())
 });
 
 view.onReady(function(e){
@@ -18,11 +18,17 @@ view.onReady(function(e){
 /*-----------------Widgets of View -------------------------*/
 
 var SentTextViewer = UI.Widget({
+    extends: UIWidgets.Box,
+
+    refs: {},
+
     init: function(){
-        this.$dom = $(this.dom);
+        this.super('init');
+
+        this.refs.$box = this.$dom.find('.box');
     },
     setText: function(text){
-        this.$dom.find('.box').html(text);
+        this.refs.$box.html(text);
     }
 });
 
@@ -34,8 +40,7 @@ var SomeTextForm = UI.Widget({
 
         var me = this;
         this.submit(function(){
-            var $someText = $(me.dom.elements.someText);
-            me.getWidget('sentTextViewer').setText($someText.val());
+            me.wg('sentTextViewer').setText(me.getElementValue('someText'));
             return false;
         });
     }
