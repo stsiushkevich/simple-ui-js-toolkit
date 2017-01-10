@@ -1,5 +1,5 @@
 var UIWidgets = (function(){
-    var PageStateAccessComponent = UI.Widget({
+    var PageStateAccessWidget = UI.Widget({
         _pageState_ : null,
 
         pgState: function(){
@@ -21,12 +21,28 @@ var UIWidgets = (function(){
         }
     });
 
-    var Box = UI.Widget({
-        extends: PageStateAccessComponent,
+    var BaseWidget = UI.Widget({
+        extents: PageStateAccessWidget,
 
-        init: function () {
+        _refs_: {},
+
+        init: function(){
             this.$dom = $(this.dom);
         },
+
+        ref: function(){
+            if(!this._refs_) return void(0);
+            var argCount = arguments.length;
+            if(!argCount) return void(0);
+            var k = arguments[0];
+            if(argCount == 1) return this._refs_[k];
+            this._refs_[k] = arguments[1];
+        }
+    });
+
+    var Box = UI.Widget({
+        extends: BaseWidget,
+
         show: function () {
             this.$dom.show();
         },
@@ -57,7 +73,7 @@ var UIWidgets = (function(){
     });
 
     var Overlay = UI.Widget({
-        extends: PageStateAccessComponent,
+        extends: PageStateAccessWidget,
 
         onShow: function(handler){
             this.$dom.on('shown.bs.modal', handler);
@@ -77,7 +93,7 @@ var UIWidgets = (function(){
     });
 
     var TextInput = UI.Widget({
-        extends: PageStateAccessComponent,
+        extends: PageStateAccessWidget,
 
         init: function(){
             this.$dom = $(this.dom);
@@ -91,7 +107,7 @@ var UIWidgets = (function(){
     });
 
     var Button  = UI.Widget({
-        extends: PageStateAccessComponent,
+        extends: PageStateAccessWidget,
 
         init: function () {
             this.super(Box, 'init');
@@ -108,7 +124,7 @@ var UIWidgets = (function(){
     });
 
     var View = UI.View({
-        extends: PageStateAccessComponent,
+        extends: PageStateAccessWidget,
 
         getWidget: function (wgId) {
             return this.wgRegister.get(wgId);
@@ -145,7 +161,7 @@ var UIWidgets = (function(){
     });
 
     var Form = UI.Widget({
-        extends: PageStateAccessComponent,
+        extends: PageStateAccessWidget,
 
         init: function () {
             this.$dom = $(this.dom);
