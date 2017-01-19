@@ -21,7 +21,7 @@ var SomeTextForm = UI.Widget({
         var me = this;
         this.submit(function(e){
             e.preventDefault();
-            settings.onSubmit({someText: me.getElementValue('someText')});
+            settings.onSubmit(me.getData());
         });
     }
 });

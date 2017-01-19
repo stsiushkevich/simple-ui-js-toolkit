@@ -162,6 +162,30 @@ var UIWidgets = (function(){
         setAttr: function (attrName, attrVal) {
             return this.$dom.attr(attrName, attrVal);
         },
+        fill: function (data) {
+            var names = this.getElementNames();
+            for (var i = 0; i < names.length; i++) {
+                if(data[names[i]]){
+                    this.setElementValue(names[i], data[names[i]]);
+                }
+            }
+        },
+        getElementNames: function(){
+            var names = [];
+            var keys = Object.getOwnPropertyNames(this.dom.elements);
+            for(var i=0; i<keys.length; i++){
+                if(!isFinite(keys[i])) names.push(keys[i]);
+            }
+            return names;
+        },
+        getData: function(){
+            var data = {};
+            var names = this.getElementNames();
+            for(var i=0; i<names.length; i++){
+                data[names[i]] = this.getElementValue(names[i]);
+            }
+            return data;
+        },
         onSubmit: function (handler) {
             this.$dom.submit(handler);
         },
