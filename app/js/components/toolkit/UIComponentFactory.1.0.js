@@ -169,19 +169,10 @@ UI = UIFactory = UIComponentFactory = (function () {
         var _model = {};
 
         function Model(args) {
-            if(args && args.length){
-                if(args.length == 1 && 'object' === typeof args[0]){
-                    if (args[0].dom) {
-                        Object.defineProperty(this, 'dom', {
-                            get: function () {
-                                return args[0].dom;
-                            }
-                        });
-                    }
-                }
-            }
             if(this['@Constructor']) this['@Constructor'].apply(this, args);
         }
+
+        Model.prototype['@Constructor'] = function () {};
 
         if(config){
             if (config.extends) {
@@ -295,38 +286,12 @@ UI = UIFactory = UIComponentFactory = (function () {
     }
 
     function createComponentClass(config) {
-        var _wgRegister = {};
 
         function Component(args) {
-            if(args && args.length){
-                if(args.length == 1 && 'object' === typeof args[0]){
-                    if (args[0].wgRegister) {
-                        _wgRegister = args[0].wgRegister;
-                    }
-                    Object.defineProperty(this, 'wgRegister', {
-                        get: function () {
-                            return _wgRegister;
-                        }
-                    });
-                }
-            }
             if(this['@Constructor']) this['@Constructor'].apply(this, args);
         }
+
         Component.prototype['@Constructor'] = function () {};
-
-        Component.prototype.init = function () {};
-
-        Component.prototype.getWidget = function(wgId){
-            return this.wgRegister.get(wgId);
-        };
-
-        Component.prototype.getWg = function(wgId){
-            return this.getWidget(wgId);
-        };
-
-        Component.prototype.wg = function(wgId){
-            return this.getWidget(wgId);
-        };
 
         if (config.extends) {
             inherit(Component).from(config.extends);
@@ -372,15 +337,8 @@ UI = UIFactory = UIComponentFactory = (function () {
     function createWidgetClass(config) {
         var Component = createComponentClass(config);
 
-        function Widget(options) {
+        function Widget() {
             Component.apply(this, arguments);
-            if(options.dom){
-                Object.defineProperty(this, 'dom', {
-                    get: function () {
-                        return options.dom;
-                    }
-                });
-            }
 
             for (var prop in config) {
                 if (config.hasOwnProperty(prop)) {
