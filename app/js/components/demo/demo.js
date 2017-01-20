@@ -6,11 +6,24 @@
 var SentTextViewer = UI.Widget({
     extends: UIWidgets.Box,
 
+    _sections: {
+        box: null
+    },
+
+    '@Constructor': function(id){
+        this.super(UIWidgets.Box, '@Constructor', id);
+    },
+
     init: function(){
-        this.ref('box', this.$dom.find('.box'));
+        this.super(UIWidgets.Box, 'init');
+
+        this._sections.box = this.$dom.find('.box');
     },
     setText: function(text){
-        this.ref('box').html(text);
+        this.getBoxSection().html(text);
+    },
+    getBoxSection: function(){
+        return this._sections.box;
     }
 });
 
@@ -18,8 +31,9 @@ var SomeTextForm = UI.Widget({
     extends: UIWidgets.Form,
 
     init: function(settings){
+        this.super(UIWidgets.Form, 'init');
         var me = this;
-        this.submit(function(e){
+        this.onSubmit(function(e){
             e.preventDefault();
             settings.onSubmit(me.getData());
         });
@@ -29,8 +43,12 @@ var SomeTextForm = UI.Widget({
 var View = UI.View({
     extends: UIWidgets.View,
 
-    '@Widget sentTextViewer': [SentTextViewer, 'sentTextViewer'],
-    '@Widget someTextForm': [SomeTextForm, 'someTextForm'],
+    '@Constructor': function(){
+        this.super(UIWidgets.View, '@Constructor');
+    },
+
+    '@Component sentTextViewer': [SentTextViewer, 'sentTextViewer'],
+    '@Component someTextForm': [SomeTextForm, 'someTextForm'],
 
     init: function(){
         var me = this;

@@ -306,6 +306,16 @@ UI = UIFactory = UIComponentFactory = (function () {
     function createComponentClass(config) {
 
         function Component() {
+            for (var prop in config) {
+                if (config.hasOwnProperty(prop)) {
+                    if (~prop.indexOf('@Component')) {
+                        if(!config[prop].length) throw new TypeError('Component class is not specified!');
+                        var key = prop.split(' ')[1];
+                        this.constructor.prototype[key] = createInstance.apply(null, config[prop]);
+                    }
+                }
+            }
+
             if(this['@Constructor']) this['@Constructor'].apply(this, arguments);
         }
 
@@ -321,7 +331,7 @@ UI = UIFactory = UIComponentFactory = (function () {
 
         for (var prop in config) {
             if (config.hasOwnProperty(prop)) {
-                if (prop != 'extends' && !~prop.indexOf('@Widget')) {
+                if (prop != 'extends' && !~prop.indexOf('@Component')) {
                     Component.prototype[prop] = config[prop];
                 }
             }
@@ -334,16 +344,6 @@ UI = UIFactory = UIComponentFactory = (function () {
         var Component = createComponentClass(config);
         function View() {
             Component.apply(this, arguments);
-
-            for (var prop in config) {
-                if (config.hasOwnProperty(prop)) {
-                    if (~prop.indexOf('@Widget')) {
-                        if(!config[prop].length) throw new TypeError('Component class is not specified!');
-                        var key = prop.split(' ')[1];
-                        Component.prototype[key] = createInstance.apply(null, arguments);
-                    }
-                }
-            }
         }
 
         inherit(View).from(Component);
@@ -355,16 +355,6 @@ UI = UIFactory = UIComponentFactory = (function () {
 
         function Widget() {
             Component.apply(this, arguments);
-
-            for (var prop in config) {
-                if (config.hasOwnProperty(prop)) {
-                    if (~prop.indexOf('@Widget')) {
-                        if(!config[prop].length) throw new TypeError('Component class is not specified!');
-                        var key = prop.split(' ')[1];
-                        Component.prototype[key] = createInstance.apply(null, arguments);
-                    }
-                }
-            }
         }
 
         inherit(Widget).from(Component);
