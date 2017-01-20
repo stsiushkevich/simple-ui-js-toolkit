@@ -25,19 +25,16 @@ var UIWidgets = (function(){
         extents: PageStateAccessWidget,
 
         '@Constructor': function(id){
-            this.dom = document.getElementById(id);
+            this._domElementId = id;
+        },
+
+        init: function(){
+            this.dom = document.getElementById(this._domElementId);
             this.$dom = $(this.dom);
         },
 
-        _refs: {},
-
-        ref: function(){
-            if(!this._refs) return void(0);
-            var argCount = arguments.length;
-            if(!argCount) return void(0);
-            var k = arguments[0];
-            if(argCount == 1) return this._refs[k];
-            this._refs[k] = arguments[1];
+        getDomElementId: function(){
+            return this._domElementId;
         }
     });
 
@@ -85,12 +82,8 @@ var UIWidgets = (function(){
     });
 
     var TextInput = UI.Widget({
-        extends: PageStateAccessWidget,
+        extends: BaseWidget,
 
-        '@Constructor': function(id){
-            this.dom = document.getElementById(id);
-            this.$dom = $(this.dom);
-        },
         getValue: function(){
             return this.$dom.val();
         },

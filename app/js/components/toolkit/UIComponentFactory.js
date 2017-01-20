@@ -91,20 +91,38 @@ UI = UIFactory = UIComponentFactory = (function () {
         return dest;
     }
 
-    function invokeSuperMethod(superClass, methodName){
-        var isInherits = false;
-        var currentClass = this.constructor;
+    function doesInheritanceExist(childClass, superClass){
+        var currentClass = childClass;
         while(currentClass._superClass){
-            if(currentClass == superClass){
-                isInherits = true; break;
-            }
+            if(currentClass == superClass) return true;
             currentClass = currentClass._superClass;
         }
-        if(isInherits){
-            var targetClass = superClass;
-            while(!targetClass._isCustomClass){
-                targetClass = targetClass._superClass;
-            }
+        return false;
+    }
+
+    function getCustomClassOf(targetClass){
+        var currentClass = targetClass;
+        while(!currentClass._isCustomClass){
+            currentClass = currentClass._superClass;
+        }
+        return currentClass;
+    }
+
+    function getMethodChain(targetClass, methodName){
+        var currentClass = getCustomClassOf(targetClass);
+        var constructors = [];
+
+        constructors.push(currentClass.prototype[methodName]);
+        while(currentClass._superClass){
+            currentClass = getCustomClassOf(currentClass._superClass);
+            constructors.push(currentClass.prototype[methodName]);
+        }
+        return constructors;
+    }
+
+    function invokeSuperMethod(superClass, methodName){
+        if(doesInheritanceExist(this.constructor, superClass)){
+            var targetClass = getCustomClassOf(superClass);
             if (targetClass.prototype[methodName]) {
                 var args = Array.prototype.slice.call(arguments, 2);
                 targetClass.prototype[methodName].apply(this, args);
@@ -168,20 +186,11 @@ UI = UIFactory = UIComponentFactory = (function () {
     function createModelClass(config){
         var _model = {};
 
-        function Model(args) {
-            if(args && args.length){
-                if(args.length == 1 && 'object' === typeof args[0]){
-                    if (args[0].dom) {
-                        Object.defineProperty(this, 'dom', {
-                            get: function () {
-                                return args[0].dom;
-                            }
-                        });
-                    }
-                }
-            }
-            if(this['@Constructor']) this['@Constructor'].apply(this, args);
+        function Model() {
+            if(this['@Constructor']) this['@Constructor'].apply(this, arguments);
         }
+
+        Model.prototype['@Constructor'] = function () {};
 
         if(config){
             if (config.extends) {
@@ -295,38 +304,22 @@ UI = UIFactory = UIComponentFactory = (function () {
     }
 
     function createComponentClass(config) {
-        var _wgRegister = {};
 
-        function Component(args) {
-            if(args && args.length){
-                if(args.length == 1 && 'object' === typeof args[0]){
-                    if (args[0].wgRegister) {
-                        _wgRegister = args[0].wgRegister;
+        function Component() {
+            for (var prop in config) {
+                if (config.hasOwnProperty(prop)) {
+                    if (~prop.indexOf('@Component')) {
+                        if(!config[prop].length) throw new TypeError('Component class is not specified!');
+                        var key = prop.split(' ')[1];
+                        this.constructor.prototype[key] = createInstance.apply(null, config[prop]);
                     }
-                    Object.defineProperty(this, 'wgRegister', {
-                        get: function () {
-                            return _wgRegister;
-                        }
-                    });
                 }
             }
-            if(this['@Constructor']) this['@Constructor'].apply(this, args);
+
+            if(this['@Constructor']) this['@Constructor'].apply(this, arguments);
         }
+
         Component.prototype['@Constructor'] = function () {};
-
-        Component.prototype.init = function () {};
-
-        Component.prototype.getWidget = function(wgId){
-            return this.wgRegister.get(wgId);
-        };
-
-        Component.prototype.getWg = function(wgId){
-            return this.getWidget(wgId);
-        };
-
-        Component.prototype.wg = function(wgId){
-            return this.getWidget(wgId);
-        };
 
         if (config.extends) {
             inherit(Component).from(config.extends);
@@ -338,7 +331,7 @@ UI = UIFactory = UIComponentFactory = (function () {
 
         for (var prop in config) {
             if (config.hasOwnProperty(prop)) {
-                if (prop != 'extends' && !~prop.indexOf('@Widget')) {
+                if (prop != 'extends' && !~prop.indexOf('@Component')) {
                     Component.prototype[prop] = config[prop];
                 }
             }
@@ -349,20 +342,8 @@ UI = UIFactory = UIComponentFactory = (function () {
 
     function createViewClass(config) {
         var Component = createComponentClass(config);
-        function View(options) {
+        function View() {
             Component.apply(this, arguments);
-
-            for (var prop in config) {
-                if (config.hasOwnProperty(prop)) {
-                    if (~prop.indexOf('@Widget')) {
-                        if(!config[prop].length) new TypeError('Component class is not specified!');
-
-                        var Widget = config[prop][0];
-                        var key = prop.split(' ')[1];
-                        Component.prototype[key] = new Widget(config[prop].slice(1));
-                    }
-                }
-            }
         }
 
         inherit(View).from(Component);
@@ -372,27 +353,8 @@ UI = UIFactory = UIComponentFactory = (function () {
     function createWidgetClass(config) {
         var Component = createComponentClass(config);
 
-        function Widget(options) {
+        function Widget() {
             Component.apply(this, arguments);
-            if(options.dom){
-                Object.defineProperty(this, 'dom', {
-                    get: function () {
-                        return options.dom;
-                    }
-                });
-            }
-
-            for (var prop in config) {
-                if (config.hasOwnProperty(prop)) {
-                    if (~prop.indexOf('@Widget')) {
-                        if(!config[prop].length) new TypeError('Component class is not specified!');
-
-                        var Widget = config[prop][0];
-                        var key = prop.split(' ')[1];
-                        Component.prototype[key] = new Widget(config[prop].slice(1));
-                    }
-                }
-            }
         }
 
         inherit(Widget).from(Component);
@@ -421,6 +383,15 @@ UI = UIFactory = UIComponentFactory = (function () {
         return WidgetRegister;
     }
 
+    function createInstance () {
+        if(arguments.length > 0){
+            var Component = arguments[0];
+            var args = Array.prototype.slice.call(arguments, 1);
+            return new Component(args);
+        }
+        throw new TypeError('Component class is not specified!');
+    }
+
     return {
         componentType:{
             VIEW: VIEW,
@@ -438,8 +409,8 @@ UI = UIFactory = UIComponentFactory = (function () {
                 case WIDGET_REGISTER:   ParentClass = createWidgetRegisterClass(config); break;
                 case AJAX_MANAGER:      ParentClass = createAjaxManagerClass(config); break;
             }
-            function Wrapper(options){
-                ParentClass.apply(this, arguments);
+            function Wrapper(args){
+                ParentClass.apply(this, args);
             }
             inherit(Wrapper).from(ParentClass);
 
@@ -471,8 +442,8 @@ UI = UIFactory = UIComponentFactory = (function () {
         AjaxManager: function(config){
             return this.createClass(AJAX_MANAGER, config);
         },
-        createInstance: function (Component) {
-            return new Component(Array.prototype.slice.call(arguments, 1));
+        createInstance: function () {
+            return createInstance.apply(null, arguments);
         }
     }
 })();
