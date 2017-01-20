@@ -65,12 +65,7 @@ var UIWidgets = (function(){
     });
 
     var Overlay = UI.Widget({
-        extends: PageStateAccessWidget,
-
-        '@Constructor': function(id){
-            this.dom = document.getElementById(id);
-            this.$dom = $(this.dom);
-        },
+        extends: Box,
 
         onShow: function(handler){
             this.$dom.on('shown.bs.modal', handler);
