@@ -24,19 +24,20 @@ var UIWidgets = (function(){
     var BaseWidget = UI.Widget({
         extents: PageStateAccessWidget,
 
-        _refs_: {},
-
-        init: function(){
+        '@Constructor': function(id){
+            this.dom = document.getElementById(id);
             this.$dom = $(this.dom);
         },
 
+        _refs: {},
+
         ref: function(){
-            if(!this._refs_) return void(0);
+            if(!this._refs) return void(0);
             var argCount = arguments.length;
             if(!argCount) return void(0);
             var k = arguments[0];
-            if(argCount == 1) return this._refs_[k];
-            this._refs_[k] = arguments[1];
+            if(argCount == 1) return this._refs[k];
+            this._refs[k] = arguments[1];
         }
     });
 
@@ -58,16 +59,13 @@ var UIWidgets = (function(){
     var MessageBox = UI.Widget({
         extends: Box,
 
-        init: function(){
-            this.super(Box, 'init');
-        },
         setMessage: function(msg){
             this.$dom.html(msg);
         }
     });
 
     var Overlay = UI.Widget({
-        extends: PageStateAccessWidget,
+        extends: Box,
 
         onShow: function(handler){
             this.$dom.on('shown.bs.modal', handler);
@@ -89,7 +87,8 @@ var UIWidgets = (function(){
     var TextInput = UI.Widget({
         extends: PageStateAccessWidget,
 
-        init: function(){
+        '@Constructor': function(id){
+            this.dom = document.getElementById(id);
             this.$dom = $(this.dom);
         },
         getValue: function(){
@@ -103,9 +102,6 @@ var UIWidgets = (function(){
     var Button  = UI.Widget({
         extends: Box,
 
-        init: function () {
-            this.super(Box, 'init');
-        },
         onClick: function (handler) {
             this.$dom.on('click', handler);
         },
@@ -120,46 +116,17 @@ var UIWidgets = (function(){
     var View = UI.View({
         extends: PageStateAccessWidget,
 
-        getWidget: function (wgId) {
-            return this.wgRegister.get(wgId);
-        },
         onReady: function(handler){
             var me = this;
             $(document).ready(function(e){
                 handler.call(me, e);
             });
-        },
-        createWidget: function(id, widgetClass, config){
-            var defaultConfig = {
-                dom: document.getElementById(id),
-                wgRegister: this.wgRegister
-            };
-            if(config){
-                defaultConfig = $.extend({},defaultConfig,config);
-            }
-            var widget = UIFactory.createInstance(widgetClass, defaultConfig);
-            this.wgRegister.add(id, widget);
-        },
-        createWidgets: function(config){
-            var keys = Object.keys(config);
-            for(var i=0; i<keys.length; i++){
-                this.createWidget(keys[i], config[keys[i]]);
-            }
-        },
-        init: function(){
-            var keys = this.wgRegister.keySet();
-            for(var i=0; i<keys.length; i++){
-                this.wgRegister.get(keys[i]).init();
-            }
         }
     });
 
     var Form = UI.Widget({
         extends: Box,
 
-        init: function () {
-            this.$dom = $(this.dom);
-        },
         getWidget: function (wgId) {
             return this.wgRegister.get(wgId);
         },
@@ -190,6 +157,30 @@ var UIWidgets = (function(){
         setAttr: function (attrName, attrVal) {
             return this.$dom.attr(attrName, attrVal);
         },
+        fill: function (data) {
+            var names = this.getElementNames();
+            for (var i = 0; i < names.length; i++) {
+                if(data[names[i]]){
+                    this.setElementValue(names[i], data[names[i]]);
+                }
+            }
+        },
+        getElementNames: function(){
+            var names = [];
+            var keys = Object.getOwnPropertyNames(this.dom.elements);
+            for(var i=0; i<keys.length; i++){
+                if(!isFinite(keys[i])) names.push(keys[i]);
+            }
+            return names;
+        },
+        getData: function(){
+            var data = {};
+            var names = this.getElementNames();
+            for(var i=0; i<names.length; i++){
+                data[names[i]] = this.getElementValue(names[i]);
+            }
+            return data;
+        },
         onSubmit: function (handler) {
             this.$dom.submit(handler);
         },
@@ -206,9 +197,6 @@ var UIWidgets = (function(){
             error: []
         },
 
-        init: function () {
-            this.super(Form, 'init');
-        },
         sendAjax: function (url, data) {
             var me = this;
             $.ajax({
@@ -249,9 +237,6 @@ var UIWidgets = (function(){
     var ComboBox = UI.Widget({
         extends: Box,
 
-        init: function () {
-            this.super(Box, 'init');
-        },
         onItemSelected: function(handler){
             var me = this;
             this.$dom.on('change', function(e){
